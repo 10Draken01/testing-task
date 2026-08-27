@@ -2,6 +2,10 @@
 
 API REST para gestión de tareas y usuarios, con asignación de tareas, notificaciones de archivado con reintentos, e idempotencia en operaciones de escritura.
 
+🔗 **API desplegada:** [https://testing-task.online/](https://testing-task.online/)
+
+> **Nota:** desplegada en el free tier de Render. La instancia se "duerme" tras ~15 min de inactividad (el primer request después puede tardar 30-50s en responder), y la base de datos SQLite no tiene disco persistente garantizado — puede resetearse en un redeploy o reinicio. Suficiente para testing/demo; no apto para producción real sin upgrade de plan.
+
 ## Stack
 
 - Node.js + Express 5
@@ -350,31 +354,33 @@ Cuando una tarea se archiva, la API hace `POST` a `NOTIFY_URL` con:
 
 `Idempotency-Key` es obligatorio en todo `POST` — generá un UUID distinto por cada operación nueva (no por cada intento/reintento de la misma operación).
 
+Los ejemplos usan la API desplegada (`https://testing-task.online`); reemplazá por `http://localhost:3000` si estás corriendo en local.
+
 ```bash
 # 1. Crear usuario
-curl -X POST http://localhost:3000/users \
+curl -X POST https://testing-task.online/users \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: 3f1a9c2e-1111-4a2b-8c3d-000000000001" \
   -d '{"name":"Ana","lastName":"Pérez","email":"ana@test.com"}'
 
 # 2. Crear tarea
-curl -X POST http://localhost:3000/tasks \
+curl -X POST https://testing-task.online/tasks \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: 3f1a9c2e-2222-4a2b-8c3d-000000000002" \
   -d '{"title":"Comprar leche"}'
 
 # 3. Asignar el usuario a la tarea
-curl -X POST http://localhost:3000/tasks/<idTask>/assign \
+curl -X POST https://testing-task.online/tasks/<idTask>/assign \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: 3f1a9c2e-3333-4a2b-8c3d-000000000003" \
   -d '{"userIds":["<idUser>"]}'
 
 # 4. Completar la tarea para ese usuario (archiva y notifica si era el último)
-curl -X POST http://localhost:3000/tasks/<idTask>/complete \
+curl -X POST https://testing-task.online/tasks/<idTask>/complete \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: 3f1a9c2e-4444-4a2b-8c3d-000000000004" \
   -d '{"userId":"<idUser>"}'
 
 # 5. Ver intentos de notificación
-curl http://localhost:3000/tasks/<idTask>/notifications
+curl https://testing-task.online/tasks/<idTask>/notifications
 ```
