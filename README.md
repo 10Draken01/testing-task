@@ -11,7 +11,7 @@ API REST para gestión de tareas y usuarios: asignación de tareas, notificacion
 
 ## Despliegue
 
-🔗 **API pública:** [https://testing-task.online/](https://testing-task.online/)
+🔗 **API pública:** [https://improvement.testing-task.online/](https://improvement.testing-task.online/)
 
 **Dónde:** Render (free tier), con dominio propio (`testing-task.online`) apuntado por DNS y HTTPS automático vía Let's Encrypt.
 
@@ -20,7 +20,7 @@ API REST para gestión de tareas y usuarios: asignación de tareas, notificacion
 **Cómo acceder:** todos los `POST` requieren el header `Idempotency-Key` (ver `docs/API.md`). Ejemplo:
 
 ```bash
-curl -X POST https://testing-task.online/tasks \
+curl -X POST https://improvement.testing-task.online/tasks \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: $(uuidgen)" \
   -d '{"title":"Comprar leche"}'

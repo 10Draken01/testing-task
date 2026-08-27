@@ -133,25 +133,25 @@ Orígenes permitidos configurables vía `ALLOWED_ORIGINS` (lista separada por co
 ## Ejemplo de flujo completo (curl)
 
 ```bash
-curl -X POST https://testing-task.online/users \
+curl -X POST https://improvement.testing-task.online/users \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: 3f1a9c2e-1111-4a2b-8c3d-000000000001" \
   -d '{"name":"Ana","lastName":"Pérez","email":"ana@test.com"}'
 
-curl -X POST https://testing-task.online/tasks \
+curl -X POST https://improvement.testing-task.online/tasks \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: 3f1a9c2e-2222-4a2b-8c3d-000000000002" \
   -d '{"title":"Comprar leche"}'
 
-curl -X POST https://testing-task.online/tasks/<idTask>/assign \
+curl -X POST https://improvement.testing-task.online/tasks/<idTask>/assign \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: 3f1a9c2e-3333-4a2b-8c3d-000000000003" \
   -d '{"userIds":["<idUser>"]}'
 
-curl -X POST https://testing-task.online/tasks/<idTask>/complete \
+curl -X POST https://improvement.testing-task.online/tasks/<idTask>/complete \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: 3f1a9c2e-4444-4a2b-8c3d-000000000004" \
   -d '{"userId":"<idUser>"}'
 
-curl https://testing-task.online/tasks/<idTask>/notifications
+curl https://improvement.testing-task.online/tasks/<idTask>/notifications
 ```
