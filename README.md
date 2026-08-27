@@ -10,7 +10,7 @@ API REST para gestión de tareas y usuarios: asignación de tareas, notificacion
 
 ## Despliegue
 
-🔗 **API pública:** [https://testing-task.online/](https://testing-task.online/)
+🔗 **API pública:** [https://base.testing-task.online/](https://base.testing-task.online/)
 
 **Dónde:** Render (free tier), con dominio propio (`testing-task.online`) apuntado por DNS y HTTPS automático vía Let's Encrypt.
 
