@@ -35,8 +35,6 @@ NOTIFY_URL=https://tu-endpoint-de-notificaciones.com/notify
 | `PORT`       | Puerto donde levanta el servidor. Default: `3000`.                          | No           |
 | `DB_PATH`    | Ruta del archivo SQLite. Default: `./data.db`.                              | No           |
 | `NOTIFY_URL` | URL externa a la que se notifica cuando una tarea se archiva.               | Sí*          |
-| `RATE_LIMIT_WINDOW_MS` | Ventana de tiempo (ms) para el rate limiting. Default: `60000` (1 min). | No |
-| `RATE_LIMIT_MAX`       | Máximo de requests por IP dentro de la ventana. Default: `100`.        | No |
 
 \* Si no se configura, las notificaciones quedan registradas localmente sin intentar el envío HTTP.
 
@@ -81,8 +79,6 @@ Toda respuesta de error sigue este formato:
 | `IDEMPOTENCY_KEY_REQUIRED`  | 400    | No se envió el header `Idempotency-Key` en un `POST`.                   |
 | `IDEMPOTENCY_KEY_MISMATCH`  | 422    | Se reusó una `Idempotency-Key` con un body distinto al original.        |
 | `IDEMPOTENCY_IN_PROGRESS`   | 409    | La operación con esa `Idempotency-Key` sigue procesándose (timeout).    |
-| `RATE_LIMIT_EXCEEDED`       | 429    | Se superó el límite de requests permitido para esta IP.                 |
-| `INTERNAL_ERROR`            | 500    | Error no controlado.                                                    |
 
 ---
 
@@ -324,29 +320,6 @@ Cuando una tarea se archiva, la API hace `POST` a `NOTIFY_URL` con:
 - Si la respuesta es `5xx` o no hay respuesta (timeout/conexión), reintenta con espera creciente hasta un máximo de **3 intentos**.
 - Cada intento queda registrado y es consultable vía `GET /tasks/:idTask/notifications`.
 - El archivado de la tarea es independiente del resultado de la notificación: si el envío falla las 3 veces, la tarea igual queda `archived`.
-
-## Rate limiting (mejora de seguridad)
-
-**Por qué se agregó:** ninguno de los mecanismos anteriores (idempotencia, validación) protege al servidor de un volumen anómalo de tráfico desde una misma IP — ya sea un cliente mal configurado en loop, un script de reintentos sin backoff, o directamente un intento de saturar la API (denial of service básico). El rate limiting agrega ese grado de seguridad faltante: acota cuántas requests puede hacer una IP en una ventana de tiempo, protegiendo la disponibilidad e integridad del servidor mientras está desplegado en producción.
-
-**Cómo funciona:**
-
-- Se aplica de forma **global**, a todos los endpoints, antes de llegar a cualquier ruta.
-- Cada IP tiene un máximo de `RATE_LIMIT_MAX` requests (default: `100`) dentro de una ventana de `RATE_LIMIT_WINDOW_MS` (default: `60000` ms = 1 minuto).
-- Al superar el límite, la API responde `429 Too Many Requests` con el mismo formato de error que el resto de la API:
-
-```json
-{
-  "error": {
-    "code": "RATE_LIMIT_EXCEEDED",
-    "message": "Demasiadas solicitudes desde esta IP, intentá de nuevo más tarde"
-  }
-}
-```
-
-- La respuesta incluye los headers estándar `RateLimit-Limit`, `RateLimit-Remaining` y `RateLimit-Reset`, para que un cliente bien implementado pueda ajustar su ritmo de requests sin necesidad de parsear el body.
-
-**Ajustar el límite:** si tu caso de uso legítimamente necesita más throughput por IP (por ejemplo, un cliente interno de confianza), subí `RATE_LIMIT_MAX` o ampliá `RATE_LIMIT_WINDOW_MS` vía variables de entorno — no hace falta tocar código.
 
 ---
 

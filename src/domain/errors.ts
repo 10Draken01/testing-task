@@ -37,8 +37,3 @@ export class MissingIdempotencyKeyError extends DomainError {
   readonly code = 'IDEMPOTENCY_KEY_REQUIRED';
   readonly statusCode = 400;
 }
-
-export class RateLimitExceededError extends DomainError {
-  readonly code = 'RATE_LIMIT_EXCEEDED';
-  readonly statusCode = 429;
-}
