@@ -1,10 +1,2 @@
 node_modules
 .env
-
-# Bases de datos SQLite (dev, tests, WAL/SHM)
-*.db
-*.db-journal
-*.db-wal
-*.db-shm
-*.sqlite
-*.sqlite3
