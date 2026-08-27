@@ -1,6 +1,7 @@
 import type { TaskEntity } from '../../domain/entities/task.entity.js';
 import type { TaskDBPort } from '../../domain/ports/taskDB.port.js';
 import type { TaskAssignmentDBPort } from '../../domain/ports/taskAssignmentDB.port.js';
+import type { PaginatedResult } from '../../domain/shared/Pagination.js';
 
 export interface TaskListItem extends TaskEntity {
   assignments: { userId: string; completed: boolean }[];
@@ -12,18 +13,29 @@ export class ListTasksUseCase {
     private readonly assignmentDB: TaskAssignmentDBPort,
   ) {}
 
-  async execute(status?: 'open' | 'archived'): Promise<TaskListItem[]> {
-    const tasks = await this.taskDB.get();
-    const filtered = status ? tasks.filter((t) => t.status === status) : tasks;
+  async execute(
+    page: number,
+    limit: number,
+    status?: 'open' | 'archived',
+  ): Promise<PaginatedResult<TaskListItem>> {
+    const offset = (page - 1) * limit;
+    const [tasks, total] = await Promise.all([
+      this.taskDB.get({ limit, offset }, status),
+      this.taskDB.count(status),
+    ]);
 
-    const result: TaskListItem[] = [];
-    for (const task of filtered) {
+    const data: TaskListItem[] = [];
+    for (const task of tasks) {
       const assignments = await this.assignmentDB.getByTaskId(task.id);
-      result.push({
+      data.push({
         ...task,
         assignments: assignments.map((a) => ({ userId: a.userId, completed: a.completed })),
       });
     }
-    return result;
+
+    return {
+      data,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
   }
 }

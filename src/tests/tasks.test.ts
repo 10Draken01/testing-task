@@ -47,7 +47,7 @@ describe('GET /tasks', () => {
     const res = await request(app).get('/tasks').set('Idempotency-Key', key).query({ status: 'archived' });
 
     expect(res.status).toBe(200);
-    expect(res.body).toEqual([]); // ninguna archivada todavía
+    expect(res.body.data).toEqual([]); // ninguna archivada todavía
   });
 
   it('rechaza un status inválido en el query', async () => {

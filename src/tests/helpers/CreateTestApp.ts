@@ -1,3 +1,8 @@
+// Debe setearse ANTES de importar createApp: express-rate-limit lee estas
+// env vars al construir el middleware (import-time), no en cada request.
+process.env.RATE_LIMIT_MAX = process.env.RATE_LIMIT_MAX ?? '100000';
+process.env.RATE_LIMIT_WINDOW_MS = process.env.RATE_LIMIT_WINDOW_MS ?? '60000';
+
 import { createApp } from '../../app.js';
 
 export function createTestApp() {

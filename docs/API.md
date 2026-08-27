@@ -16,7 +16,7 @@ Documentación completa de cada endpoint. Para instrucciones de instalación, de
 | `IDEMPOTENCY_KEY_REQUIRED`  | 400    | No se envió el header `Idempotency-Key` en un `POST`.                   |
 | `IDEMPOTENCY_KEY_MISMATCH`  | 422    | Se reusó una `Idempotency-Key` con un body distinto al original.        |
 | `IDEMPOTENCY_IN_PROGRESS`   | 409    | La operación con esa `Idempotency-Key` sigue procesándose (timeout).    |
-| `RATE_LIMIT_EXCEEDED`       | 429    | Se superó el límite de requests permitido para esta IP (mejora extra).  |
+| `RATE_LIMIT_EXCEEDED`       | 429    | Se superó el límite de requests permitido para esta IP.                 |
 | `INTERNAL_ERROR`            | 500    | Error no controlado.                                                    |
 
 ## Idempotencia (header `Idempotency-Key`, obligatorio en todo POST)
@@ -40,9 +40,13 @@ Registra un usuario.
 
 ## `GET /users`
 
-Lista usuarios con sus tareas pendientes.
+Lista usuarios con sus tareas pendientes, paginado.
 
-**200:** `[{ "id": "...", "name": "...", "lastName": "...", "email": "...", "pendingTasks": [ { "id": "...", "title": "...", "status": "open" } ] }]`
+**Query opcional:** `?page=1&limit=20`
+
+**200:** `{ "data": [{ "id": "...", "name": "...", "lastName": "...", "email": "...", "pendingTasks": [ { "id": "...", "title": "...", "status": "open" } ] }], "pagination": { "page": 1, "limit": 20, "total": 3, "totalPages": 1 } }`
+
+**Errores:** `400` (`page`/`limit` inválidos, ej. `limit` mayor al máximo permitido).
 
 ## `GET /users/:idUser/tasks`
 
@@ -64,11 +68,13 @@ Registra una tarea. Estado por defecto `"open"`. `description` es opcional (defa
 
 ## `GET /tasks`
 
-**Query opcional:** `?status=open|archived`
+Lista tareas, paginado.
 
-**200:** `[{ "id": "...", "title": "...", "status": "open", "assignments": [{ "userId": "...", "completed": false }] }]`
+**Query opcional:** `?status=open|archived&page=1&limit=20`
 
-**Errores:** `400` (`status` inválido).
+**200:** `{ "data": [{ "id": "...", "title": "...", "status": "open", "assignments": [{ "userId": "...", "completed": false }] }], "pagination": { "page": 1, "limit": 20, "total": 5, "totalPages": 1 } }`
+
+**Errores:** `400` (`status`, `page` o `limit` inválidos).
 
 ## `GET /tasks/:idTask`
 
@@ -112,9 +118,17 @@ Intentos de notificación de archivado (número de intento, timestamp, status HT
 
 Al archivar una tarea, `POST` a `NOTIFY_URL` con `{ "taskId", "title", "archivedAt" }`. Si responde `5xx` o no responde, reintenta con backoff creciente hasta 3 intentos, cada uno auditado en `notification_attempts`. El archivado de la tarea es independiente del resultado del envío.
 
-## Rate limiting (mejora extra, fuera del alcance obligatorio)
+## Paginación
 
-Límite global por IP (`RATE_LIMIT_MAX`, default 100 requests por `RATE_LIMIT_WINDOW_MS`, default 60s). Al superarlo: `429 RATE_LIMIT_EXCEEDED`. Se agregó como medida de seguridad básica contra abuso/DoS, sin costo de infraestructura adicional. Headers `RateLimit-*` incluidos en la respuesta.
+`GET /tasks` y `GET /users` aceptan `?page` (default `1`) y `?limit` (default `DEFAULT_PAGE_SIZE`, tope `MAX_PAGE_SIZE`). La respuesta siempre tiene la forma `{ data: [...], pagination: { page, limit, total, totalPages } }`. `page`/`limit` fuera de rango (`page < 1`, `limit > MAX_PAGE_SIZE`) devuelven `400 VALIDATION_ERROR`.
+
+## Rate limiting
+
+Límite global por IP (`RATE_LIMIT_MAX`, default 100 requests por `RATE_LIMIT_WINDOW_MS`, default 60s). Al superarlo: `429 RATE_LIMIT_EXCEEDED`. Headers `RateLimit-*` incluidos en toda respuesta.
+
+## CORS
+
+Orígenes permitidos configurables vía `ALLOWED_ORIGINS` (lista separada por coma). Sin la variable definida, acepta cualquier origen. Métodos habilitados: `GET`, `POST`. El header `Idempotency-Key` está explícitamente permitido en `allowedHeaders`, ya que de lo contrario un request cross-origin fallaría el preflight al ser obligatorio en todo `POST`.
 
 ## Ejemplo de flujo completo (curl)
 

@@ -6,7 +6,7 @@ import {
   ConflictError,
   IdempotencyKeyMismatchError,
   IdempotencyInProgressError,
-} from '../../domain/errors.js';
+} from '../../domain/shared/errors.js';
 
 function hashBody(body: unknown): string {
   return createHash('sha256').update(JSON.stringify(body ?? {})).digest('hex');

@@ -2,9 +2,9 @@
 import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 
-import { validateBody } from '../../middlewares/validateBody.middleware.js';
+import { validateBody, validateQuery } from '../../middlewares/validateBody.middleware.js';
 import { idempotencyMiddleware } from '../../middlewares/idempotency.middleware.js';
-import { CreateUserSchema } from '../../validation/schemas.js';
+import { CreateUserSchema, ListUsersQuerySchema } from '../../validation/schemas.js';
 
 import type { IdempotencyDBPort } from '../../../domain/ports/idempotencyDB.port.js';
 import type { CreateUserUseCase } from '../../../application/use-cases/CreateUserUseCase.js';
@@ -17,11 +17,11 @@ interface UserControllerDeps {
   listUserTasksUseCase: ListUserTasksUseCase;
   idempotencyDB: IdempotencyDBPort;
 }
-
+ 
 export function createUserController(deps: UserControllerDeps): Router {
   const router = Router();
   const idempotency = idempotencyMiddleware(deps.idempotencyDB);
-
+ 
   router.post(
     '/users',
     idempotency,
@@ -35,16 +35,21 @@ export function createUserController(deps: UserControllerDeps): Router {
       }
     },
   );
-
-  router.get('/users', async (_req: Request, res: Response, next: NextFunction) => {
-    try {
-      const users = await deps.listUsersUseCase.execute();
-      res.status(200).json(users);
-    } catch (err) {
-      next(err);
-    }
-  });
-
+ 
+  router.get(
+    '/users',
+    validateQuery(ListUsersQuerySchema),
+    async (_req: Request, res: Response, next: NextFunction) => {
+      try {
+        const { page, limit } = res.locals.query as { page: number; limit: number };
+        const result = await deps.listUsersUseCase.execute(page, limit);
+        res.status(200).json(result);
+      } catch (err) {
+        next(err);
+      }
+    },
+  );
+ 
   router.get(
     '/users/:idUser/tasks',
     async (req: Request<{ idUser: string }>, res: Response, next: NextFunction) => {
@@ -56,6 +61,7 @@ export function createUserController(deps: UserControllerDeps): Router {
       }
     },
   );
-
+ 
   return router;
 }
+ 

@@ -1,4 +1,4 @@
-import { ValidationError } from '../../domain/errors.js';
+import { ValidationError } from '../../domain/shared/errors.js';
 import type { TaskEntity } from '../../domain/entities/task.entity.js';
 import type { TaskDBPort } from '../../domain/ports/taskDB.port.js';
 

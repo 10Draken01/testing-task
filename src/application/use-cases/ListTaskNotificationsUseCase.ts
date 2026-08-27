@@ -1,4 +1,4 @@
-import { NotFoundError } from '../../domain/errors.js';
+import { NotFoundError } from '../../domain/shared/errors.js';
 import type { NotificationAttemptEntity } from '../../domain/entities/notificationAttempt.entity.js';
 import type { TaskDBPort } from '../../domain/ports/taskDB.port.js';
 import type { NotificationDBPort } from '../../domain/ports/notificationDB.port.js';

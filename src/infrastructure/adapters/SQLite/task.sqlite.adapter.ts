@@ -4,6 +4,7 @@ import type Database from 'better-sqlite3';
 import { SQLite } from './SQLite.js';
 import type { TaskEntity } from '../../../domain/entities/task.entity.js';
 import type { TaskDBPort } from '../../../domain/ports/taskDB.port.js';
+import type { PaginationParams } from '../../../domain/shared/Pagination.js';
 
 // Aqui heredamos de SQLite para poder usar el metodo generateUniqueId
 export class TaskSQLiteAdapter extends SQLite implements TaskDBPort {
@@ -19,8 +20,25 @@ export class TaskSQLiteAdapter extends SQLite implements TaskDBPort {
     return { id, ...data, status: 'open' };
   }
 
-  async get(): Promise<TaskEntity[]> {
-    return this.db.prepare(`SELECT * FROM ${this.name_table}`).all() as TaskEntity[];
+  async get(
+    pagination: PaginationParams,
+    status?: 'open' | 'archived',
+  ): Promise<TaskEntity[]> {
+    if (status) {
+      return this.db
+        .prepare(`SELECT * FROM ${this.name_table} WHERE status = ? LIMIT ? OFFSET ?`)
+        .all(status, pagination.limit, pagination.offset) as TaskEntity[];
+    }
+    return this.db
+      .prepare(`SELECT * FROM ${this.name_table} LIMIT ? OFFSET ?`)
+      .all(pagination.limit, pagination.offset) as TaskEntity[];
+  }
+
+  async count(status?: 'open' | 'archived'): Promise<number> {
+    const row = status
+      ? this.db.prepare(`SELECT COUNT(*) as total FROM ${this.name_table} WHERE status = ?`).get(status)
+      : this.db.prepare(`SELECT COUNT(*) as total FROM ${this.name_table}`).get();
+    return (row as { total: number }).total;
   }
 
   async getById(id: string): Promise<TaskEntity | null> {
@@ -32,15 +50,15 @@ export class TaskSQLiteAdapter extends SQLite implements TaskDBPort {
 
   async updateById(
     id: string,
-    data: Partial<Omit<TaskEntity, 'id'>>
+    data: Partial<Omit<TaskEntity, 'id'>>,
   ): Promise<TaskEntity | null> {
     const current = await this.getById(id);
     if (!current) return null;
 
     const updated: TaskEntity = { ...current, ...data, id };
     this.db
-      .prepare(`UPDATE ${this.name_table} SET title = ?, description = ? WHERE id = ?`)
-      .run(updated.title, updated.description, id);
+      .prepare(`UPDATE ${this.name_table} SET title = ?, description = ?, status = ? WHERE id = ?`)
+      .run(updated.title, updated.description, updated.status, id);
 
     return updated;
   }
@@ -52,11 +70,8 @@ export class TaskSQLiteAdapter extends SQLite implements TaskDBPort {
 
   async tryArchive(id: string): Promise<boolean> {
     const result = this.db
-      .prepare(`UPDATE tasks SET status = 'archived' WHERE id = ? AND status = 'open'`)
+      .prepare(`UPDATE ${this.name_table} SET status = 'archived' WHERE id = ? AND status = 'open'`)
       .run(id);
-    // changes > 0 solo si ESTA llamada fue la que cambió el estado.
-    // Si otra ya lo había archivado, changes = 0, y así evitamos
-    // notificar dos veces en el caso de los dos últimos usuarios simultáneos.
     return result.changes > 0;
   }
 }

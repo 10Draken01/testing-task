@@ -1,4 +1,4 @@
-import { NotFoundError } from '../../domain/errors.js';
+import { NotFoundError } from '../../domain/shared/errors.js';
 import type { TaskEntity } from '../../domain/entities/task.entity.js';
 import type { UserEntity } from '../../domain/entities/user.entity.js';
 import type { TaskDBPort } from '../../domain/ports/taskDB.port.js';

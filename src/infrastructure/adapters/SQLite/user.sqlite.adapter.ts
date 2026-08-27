@@ -5,7 +5,8 @@ import type Database from 'better-sqlite3';
 import { SQLite } from './SQLite.js';
 import type { UserEntity } from '../../../domain/entities/user.entity.js';
 import type { UserDBPort } from '../../../domain/ports/userDB.port.js';
-import { ConflictError } from '../../../domain/errors.js';
+import type { PaginationParams } from '../../../domain/shared/Pagination.js';
+import { ConflictError } from '../../../domain/shared/errors.js';
 
 export class UserSQLiteAdapter extends SQLite implements UserDBPort {
   constructor(db: Database.Database, name_table: string = 'users') {
@@ -27,8 +28,15 @@ export class UserSQLiteAdapter extends SQLite implements UserDBPort {
     }
   }
 
-  async get(): Promise<UserEntity[]> {
-    return this.db.prepare(`SELECT * FROM ${this.name_table}`).all() as UserEntity[];
+  async get(pagination: PaginationParams): Promise<UserEntity[]> {
+    return this.db
+      .prepare(`SELECT * FROM ${this.name_table} LIMIT ? OFFSET ?`)
+      .all(pagination.limit, pagination.offset) as UserEntity[];
+  }
+
+  async count(): Promise<number> {
+    const row = this.db.prepare('SELECT COUNT(*) as total FROM users').get();
+    return (row as { total: number }).total;
   }
 
   async getById(id: string): Promise<UserEntity | null> {

@@ -28,11 +28,11 @@ interface TaskControllerDeps {
   listTaskNotificationsUseCase: ListTaskNotificationsUseCase;
   idempotencyDB: IdempotencyDBPort;
 }
-
+ 
 export function createTaskController(deps: TaskControllerDeps): Router {
   const router = Router();
   const idempotency = idempotencyMiddleware(deps.idempotencyDB);
-
+ 
   router.post(
     '/tasks',
     idempotency,
@@ -46,7 +46,7 @@ export function createTaskController(deps: TaskControllerDeps): Router {
       }
     },
   );
-
+ 
   router.post(
     '/tasks/:idTask/assign',
     idempotency,
@@ -60,7 +60,7 @@ export function createTaskController(deps: TaskControllerDeps): Router {
       }
     },
   );
-
+ 
   router.post(
     '/tasks/:idTask/complete',
     idempotency,
@@ -74,21 +74,25 @@ export function createTaskController(deps: TaskControllerDeps): Router {
       }
     },
   );
-
+ 
   router.get(
     '/tasks',
     validateQuery(ListTasksQuerySchema),
-    async (req: Request, res: Response, next: NextFunction) => {
+    async (_req: Request, res: Response, next: NextFunction) => {
       try {
-        const { status } = res.locals.query as { status?: 'open' | 'archived' };
-        const tasks = await deps.listTasksUseCase.execute(status);
-        res.status(200).json(tasks);
+        const { page, limit, status } = res.locals.query as {
+          page: number;
+          limit: number;
+          status?: 'open' | 'archived';
+        };
+        const result = await deps.listTasksUseCase.execute(page, limit, status);
+        res.status(200).json(result);
       } catch (err) {
         next(err);
       }
     },
   );
-
+ 
   router.get(
     '/tasks/:idTask',
     async (req: Request<{ idTask: string }>, res: Response, next: NextFunction) => {
@@ -100,7 +104,7 @@ export function createTaskController(deps: TaskControllerDeps): Router {
       }
     },
   );
-
+ 
   router.get(
     '/tasks/:idTask/notifications',
     async (req: Request<{ idTask: string }>, res: Response, next: NextFunction) => {
@@ -112,6 +116,6 @@ export function createTaskController(deps: TaskControllerDeps): Router {
       }
     },
   );
-
+ 
   return router;
 }

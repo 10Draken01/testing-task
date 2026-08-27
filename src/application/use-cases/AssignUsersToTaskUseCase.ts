@@ -1,4 +1,4 @@
-import { NotFoundError, ValidationError } from '../../domain/errors.js';
+import { NotFoundError, ValidationError } from '../../domain/shared/errors.js';
 import type { TaskDBPort } from '../../domain/ports/taskDB.port.js';
 import type { UserDBPort } from '../../domain/ports/userDB.port.js';
 import type { TaskAssignmentDBPort } from '../../domain/ports/taskAssignmentDB.port.js';

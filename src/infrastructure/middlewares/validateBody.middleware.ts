@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { z } from 'zod';
-import { ValidationError } from '../../domain/errors.js';
+import { ValidationError } from '../../domain/shared/errors.js';
 
 function formatZodMessage(error: z.ZodError): string {
   return error.issues

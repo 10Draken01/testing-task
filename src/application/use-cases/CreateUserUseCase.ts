@@ -1,4 +1,4 @@
-import { ValidationError } from '../../domain/errors.js';
+import { ValidationError } from '../../domain/shared/errors.js';
 import type { UserEntity } from '../../domain/entities/user.entity.js';
 import type { UserDBPort } from '../../domain/ports/userDB.port.js';
 

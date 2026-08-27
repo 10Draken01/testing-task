@@ -5,6 +5,7 @@ API REST para gestión de tareas y usuarios: asignación de tareas, notificacion
 **Repositorio:** https://github.com/10Draken01/testing-task
 **Documentación completa de endpoints:** [`docs/API.md`](./docs/API.md)
 **Esquema SQL:** [`sql/schema.sql`](./sql/schema.sql)
+**Diagrama UML (ER):** [`docs/database-uml.md`](./docs/database-uml.md)
 
 ---
 
@@ -65,6 +66,8 @@ La base SQLite (`DB_PATH`, default `./data.db`) se crea sola al arrancar, ejecut
 - **Formato de error único (`{ error: { code, message } }`) vía un solo error-handler global:** consistencia en toda la API sin repetir lógica de formateo en cada controller.
 - **Tests de integración (Vitest + Supertest) sobre los endpoints reales:** en vez de mockear las capas internas, se testea el comportamiento real incluyendo middlewares, concurrencia (`Promise.all`) e idempotencia.
 - **CORS configurable vía `ALLOWED_ORIGINS`:** permite restringir orígenes en producción sin tocar código; sin la variable definida, acepta cualquier origen (útil en desarrollo/testing).
+- **Rate limiting global por IP (`express-rate-limit`):** protege contra abuso/DoS básico sin costo de infraestructura adicional. Configurable vía `RATE_LIMIT_WINDOW_MS`/`RATE_LIMIT_MAX`; al superarlo, `429 RATE_LIMIT_EXCEEDED` con el mismo formato de error del resto de la API. Detalle en `docs/API.md`.
+- **Paginación en `GET /tasks` y `GET /users` (`LIMIT`/`OFFSET` a nivel de SQL, no en memoria):** evita traer y filtrar toda la tabla en cada request, algo que no escalaría al crecer el volumen de datos. `page`/`limit` configurables por query param, con tope máximo (`MAX_PAGE_SIZE`) para evitar que un cliente pida páginas arbitrariamente grandes.
 
 ## Supuestos ante ambigüedades
 
@@ -74,10 +77,10 @@ La base SQLite (`DB_PATH`, default `./data.db`) se crea sola al arrancar, ejecut
 - Solo un `5xx` o ausencia de respuesta disparan reintento de notificación; un `4xx` se trata como error del cliente que no cambiaría al reintentar.
 - `description` en `POST /tasks` es opcional; si no se envía, se guarda como `""` en vez de `null`, para simplificar el tipado de la entidad.
 - `Idempotency-Key` se exigió obligatoria en todo `POST` (decisión propia, no explícita en el enunciado) para reforzar la garantía de confiabilidad pedida. Los `GET` no la requieren por ser naturalmente idempotentes.
+- Paginación con defaults propios (`page=1`, `limit=20`, tope `100`) al no estar especificada en el enunciado — valores razonables para el volumen esperado de esta prueba, ajustables vía env vars sin tocar código.
 
 ## Funcionalidades recortadas por falta de tiempo
 
 - Sin autenticación/autorización: cualquiera puede crear usuarios, tareas y completarlas. Fuera del alcance pedido, pero necesario para un entorno real.
-- Sin paginación en `GET /tasks` / `GET /users`: no era crítico para el volumen de esta prueba.
 - Los ports soportan `delete`, pero no hay endpoints `DELETE` expuestos en las rutas.
 - Los reintentos de notificación son secuenciales dentro del mismo ciclo de vida del proceso: si el servidor se reinicia a mitad de la secuencia, ese intento pendiente se pierde (no hay cola persistente tipo BullMQ/cron job de reintentos).
