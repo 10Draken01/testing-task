@@ -1,0 +1,108 @@
+@startuml TaskNotification-Database
+
+' ============================================================
+' Diagrama de clases UML — Base de datos TaskNotification
+' Corresponde a sql/schema.sql
+' ============================================================
+
+skinparam classAttributeIconSize 0
+skinparam classFontStyle bold
+skinparam packageStyle rectangle
+hide circle
+hide methods
+
+title TaskNotification — Modelo de datos (UML)
+
+package "Dominio de Tareas" {
+
+  class User <<Entity>> {
+    + id : TEXT <<PK>>
+    --
+    name : TEXT
+    lastName : TEXT
+    email : TEXT <<UK>>
+  }
+
+  class Task <<Entity>> {
+    + id : TEXT <<PK>>
+    --
+    title : TEXT
+    description : TEXT
+    status : TEXT
+    .. CHECK ..
+    status IN ('open', 'archived')
+  }
+
+  class TaskAssignment <<Entity>> {
+    + id : TEXT <<PK>>
+    --
+    taskId : TEXT <<FK>>
+    userId : TEXT <<FK>>
+    completed : INTEGER
+    .. CONSTRAINT ..
+    UNIQUE (taskId, userId)
+  }
+
+  class NotificationAttempt <<Entity>> {
+    + id : TEXT <<PK>>
+    --
+    taskId : TEXT <<FK>>
+    attemptNumber : INTEGER
+    timestamp : TEXT
+    statusHttp : INTEGER
+    .. Nullable ..
+    statusHttp
+  }
+}
+
+package "Confiabilidad" {
+
+  class IdempotencyKey <<Entity>> {
+    + idempotencyKey : TEXT <<PK>>
+    --
+    method : TEXT
+    path : TEXT
+    bodyHash : TEXT
+    status : TEXT
+    responseStatus : INTEGER
+    responseBody : TEXT
+    createdAt : TEXT
+    .. CHECK ..
+    status IN ('processing', 'completed')
+    .. Nullable ..
+    responseStatus, responseBody
+  }
+}
+
+' ============================================================
+' Relaciones
+' ============================================================
+
+User "1" -- "0..*" TaskAssignment : es asignado en >
+Task "1" -- "0..*" TaskAssignment : contiene >
+Task "1" -- "0..*" NotificationAttempt : genera intentos de >
+
+' ============================================================
+' Notas de diseño
+' ============================================================
+
+note right of TaskAssignment
+  Tabla puente que resuelve la
+  relación N:M entre User y Task.
+  UNIQUE(taskId, userId) garantiza
+  a nivel de base de datos que un
+  usuario no se asigne dos veces
+  a la misma tarea.
+end note
+
+note bottom of IdempotencyKey
+  Tabla independiente, sin FK hacia
+  el resto del modelo. idempotencyKey
+  como PRIMARY KEY es lo que garantiza
+  atomicidad ante escrituras
+  concurrentes con la misma key.
+end note
+
+note "Todos los IDs son TEXT (UUID v4),\ngenerados en la capa de aplicación,\nno INTEGER AUTOINCREMENT." as N1
+
+@enduml
