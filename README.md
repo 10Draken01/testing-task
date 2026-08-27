@@ -19,7 +19,7 @@ API REST para gestión de tareas y usuarios: asignación de tareas, notificacion
 **Cómo acceder:** todos los `POST` requieren el header `Idempotency-Key` (ver `docs/API.md`). Ejemplo:
 
 ```bash
-curl -X POST https://testing-task.online/tasks \
+curl -X POST https://base.testing-task.online/tasks \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: $(uuidgen)" \
   -d '{"title":"Comprar leche"}'
