@@ -98,6 +98,7 @@ export function InicializateEndPoints(app: Express.Application, db_path: string)
     getTaskByIdUseCase,
     listTaskNotificationsUseCase,
     idempotencyDB: idempotency_db_repository,
+    defaultLimit: process.env.DEFAULT_PAGE_SIZE ? parseInt(process.env.DEFAULT_PAGE_SIZE) : 10, // Valor por defecto para paginación
   });
 
   // --- Registro de rutas ---

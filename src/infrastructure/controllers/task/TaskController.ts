@@ -27,6 +27,7 @@ interface TaskControllerDeps {
   getTaskByIdUseCase: GetTaskByIdUseCase;
   listTaskNotificationsUseCase: ListTaskNotificationsUseCase;
   idempotencyDB: IdempotencyDBPort;
+  defaultLimit: number;
 }
  
 export function createTaskController(deps: TaskControllerDeps): Router {

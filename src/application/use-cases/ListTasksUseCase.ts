@@ -14,7 +14,7 @@ export class ListTasksUseCase {
   ) {}
 
   async execute(
-    page: number,
+    page: number = 1,
     limit: number,
     status?: 'open' | 'archived',
   ): Promise<PaginatedResult<TaskListItem>> {
