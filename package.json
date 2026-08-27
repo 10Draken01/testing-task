@@ -2,13 +2,13 @@
   "name": "tasknotification",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/server.js"
   },
   "keywords": [],
   "author": "",
