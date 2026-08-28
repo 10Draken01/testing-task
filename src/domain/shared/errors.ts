@@ -43,7 +43,7 @@ export class RateLimitExceededError extends DomainError {
   readonly statusCode = 429;
 }
 
-export class ForbiddenError extends DomainError {
-  readonly code = 'FORBIDDEN';
-  readonly statusCode = 403;
+export class UnauthorizedError extends DomainError { 
+  readonly code = 'UNAUTHORIZED'; 
+  readonly statusCode = 401; 
 }

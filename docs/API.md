@@ -135,12 +135,12 @@ Su objetivo principal es proporcionar rápidamente un volumen representativo de 
 
 ### Autenticación
 
-Este endpoint requiere el header administrativo `admin-password`.
+Este endpoint requiere el header administrativo `Admin-Password`.
 
 **\*\*Header requerido:\*\***
 
 ```http
-admin-password: <ADMIN_PASSWORD>
+Admin-Password: <ADMIN_PASSWORD>
 ```
 
 **\*\*Body:\*\*** No requiere body.
@@ -157,18 +157,15 @@ admin-password: <ADMIN_PASSWORD>
 
 **\*\*Errores:\*\***
 
-- `401` si el header `admin-password` no está presente.
-- `401` si el valor de `admin-password` es incorrecto.
+- `401` si el valor de `Admin-Password` es incorrecto.
 - `429` si se excede el rate limit global.
 
 ### Ejemplo
 
 ```bash
 curl -X POST https://improvement.testing-task.online/fake-data \
-  -H "admin-password: <ADMIN_PASSWORD>"
+  -H "Admin-Password: <ADMIN_PASSWORD>"
 ```
-
-> **Nota:** el valor real de `admin-password` no debe incluirse en el repositorio ni en esta documentación. Este endpoint está diseñado únicamente como herramienta auxiliar para desarrollo, testing y demostración.
 
 ---
 
@@ -217,5 +214,5 @@ curl https://improvement.testing-task.online/tasks/<idTask>/notifications
 
 # Generar datos de prueba para paginación
 curl -X POST https://improvement.testing-task.online/fake-data \
-  -H "admin-password: <ADMIN_PASSWORD>"
+  -H "Admin-Password: <ADMIN_PASSWORD>"
 ```

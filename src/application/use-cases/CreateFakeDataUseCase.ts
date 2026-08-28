@@ -51,7 +51,7 @@ export class CreateFakeDataUseCase {
     }
 
     return {
-      message: 'Fake data created successfully'
+      message: "Datos de prueba generados correctamente"
     }
   }
 }

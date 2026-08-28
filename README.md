@@ -31,16 +31,16 @@ curl -X POST https://improvement.testing-task.online/tasks \
 
 **\*\*Endpoint adicional de desarrollo/testing:\*\*** la API también incluye `POST /fake-data`, un endpoint destinado exclusivamente a desarrollo, testing y demostración. Permite generar automáticamente 100 usuarios y 100 tareas, asignando las primeras 50 tareas a los primeros 50 usuarios para facilitar las pruebas de paginación en `GET /users` y `GET /tasks`.
 
-Este endpoint no forma parte del flujo funcional principal de la API y utiliza el header `admin-password` como mecanismo simple de protección. No requiere body ni `Idempotency-Key`.
+Este endpoint no forma parte del flujo funcional principal de la API y utiliza el header `Admin-Password` como mecanismo simple de protección. No requiere body ni `Idempotency-Key`.
 
 Ejemplo:
 
 ```bash
 curl -X POST https://improvement.testing-task.online/fake-data \
-  -H "admin-password: <ADMIN_PASSWORD>"
+  -H "Admin-Password: <ADMIN_PASSWORD>"
 ```
 
-> **Nota:** el valor real de `admin-password` no se incluye en el repositorio ni en esta documentación.
+> **Nota:** el valor real de `Admin-Password` no se incluye en el repositorio ni en esta documentación.
 
 ---
 
@@ -74,7 +74,7 @@ npm test
 
 La base SQLite (`DB_PATH`, default `./data.db`) se crea sola al arrancar, ejecutando `sql/schema.sql`.
 
-Para probar el endpoint adicional de generación de datos, configurar también el password administrativo correspondiente en las variables de entorno y realizar una petición a `POST /fake-data` utilizando el header `admin-password`.
+Para probar el endpoint adicional de generación de datos, configurar también el password administrativo correspondiente en las variables de entorno y realizar una petición a `POST /fake-data` utilizando el header `Admin-Password`.
 
 ---
 
@@ -118,7 +118,7 @@ Para probar el endpoint adicional de generación de datos, configurar también e
 
 - `description` en `POST /tasks` es opcional; si no se envía, se guarda como `""` en vez de `null`, para simplificar el tipado de la entidad.
 
-- `Idempotency-Key` se exigió obligatoria en todo `POST` de la API principal (decisión propia, no explícita en el enunciado) para reforzar la garantía de confiabilidad pedida. `POST /fake-data` es una excepción deliberada debido a que su finalidad es exclusivamente generar datos de prueba y utiliza `admin-password` como protección básica. Los `GET` no la requieren por ser naturalmente idempotentes.
+- `Idempotency-Key` se exigió obligatoria en todo `POST` de la API principal (decisión propia, no explícita en el enunciado) para reforzar la garantía de confiabilidad pedida. `POST /fake-data` es una excepción deliberada debido a que su finalidad es exclusivamente generar datos de prueba y utiliza `Admin-Password` como protección básica. Los `GET` no la requieren por ser naturalmente idempotentes.
 
 - Paginación con defaults propios (`page=1`, `limit=20`, tope `100`) al no estar especificada en el enunciado — valores razonables para el volumen esperado de esta prueba, ajustables vía env vars sin tocar código.
 
@@ -134,4 +134,4 @@ Para probar el endpoint adicional de generación de datos, configurar también e
 
 - Los reintentos de notificación son secuenciales dentro del mismo ciclo de vida del proceso: si el servidor se reinicia a mitad de la secuencia, ese intento pendiente se pierde (no hay cola persistente tipo BullMQ/cron job de reintentos).
 
-- **\*\*El endpoint `POST /fake-data` no constituye un sistema de autenticación administrativa.\*\*** El header `admin-password` únicamente proporciona una protección básica para evitar ejecuciones accidentales o acceso casual al endpoint durante desarrollo/testing. Para un entorno de producción debería sustituirse por un mecanismo de autenticación y autorización adecuado, o eliminarse completamente.
+- **\*\*El endpoint `POST /fake-data` no constituye un sistema de autenticación administrativa.\*\*** El header `Admin-Password` únicamente proporciona una protección básica para evitar ejecuciones accidentales o acceso casual al endpoint durante desarrollo/testing. Para un entorno de producción debería sustituirse por un mecanismo de autenticación y autorización adecuado, o eliminarse completamente.

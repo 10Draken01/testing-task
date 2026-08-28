@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 
+import { fakeDataMiddleware } from '../../middlewares/fakeData.middleware.js';
+
 import type { CreateFakeDataUseCase } from '../../../application/use-cases/CreateFakeDataUseCase.js';
 
 interface FakeDataControllerDeps {
@@ -12,6 +14,7 @@ export function createFakeDataController(deps: FakeDataControllerDeps): Router {
  
   router.post(
     '/fake-data',
+    fakeDataMiddleware(),
     async (req: Request, res: Response, next: NextFunction) => {
       try {
         const response = await deps.createFakeDataUseCase.execute();
