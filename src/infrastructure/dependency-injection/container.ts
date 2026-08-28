@@ -31,81 +31,95 @@ import { ListTasksUseCase } from '../../application/use-cases/ListTasksUseCase.j
 import { GetTaskByIdUseCase } from '../../application/use-cases/GetTaskByIdUseCase.js';
 import { ListTaskNotificationsUseCase } from '../../application/use-cases/ListTaskNotificationsUseCase.js';
 
+import { CreateFakeDataUseCase } from '../../application/use-cases/CreateFakeDataUseCase.js';
+
 // Controllers
 import { createUserController } from '../controllers/user/UserController.js';
 import { createTaskController } from '../controllers/task/TaskController.js';
+import { createFakeDataController } from '../controllers/fake-data/FakeDataController.js';
 
 export function InicializateEndPoints(app: Express.Application, db_path: string): void {
-  const db = inicializateDatabase(db_path);
+    const db = inicializateDatabase(db_path);
 
-  // --- Adapters (implementan los ports) ---
-  const user_db_repository: UserDBPort = new UserSQLiteAdapter(db);
-  const task_db_repository: TaskDBPort = new TaskSQLiteAdapter(db);
-  const task_assignment_db_repository: TaskAssignmentDBPort = new TaskAssignmentSQLiteAdapter(db);
-  const notification_db_repository: NotificationDBPort = new NotificationSQLiteAdapter(db);
-  const idempotency_db_repository: IdempotencyDBPort = new IdempotencySQLiteAdapter(db);
-  const notifier: NotifierPort = new HttpNotifierAdapter(notification_db_repository);
+    // --- Adapters (implementan los ports) ---
+    const user_db_repository: UserDBPort = new UserSQLiteAdapter(db);
+    const task_db_repository: TaskDBPort = new TaskSQLiteAdapter(db);
+    const task_assignment_db_repository: TaskAssignmentDBPort = new TaskAssignmentSQLiteAdapter(db);
+    const notification_db_repository: NotificationDBPort = new NotificationSQLiteAdapter(db);
+    const idempotency_db_repository: IdempotencyDBPort = new IdempotencySQLiteAdapter(db);
+    const notifier: NotifierPort = new HttpNotifierAdapter(notification_db_repository);
 
-  // --- Use cases (reciben los ports, no los adapters concretos) ---
-  const createUserUseCase = new CreateUserUseCase(user_db_repository);
-  const listUsersUseCase = new ListUsersUseCase(
-    user_db_repository,
-    task_assignment_db_repository,
-    task_db_repository,
-  );
-  const listUserTasksUseCase = new ListUserTasksUseCase(
-    user_db_repository,
-    task_assignment_db_repository,
-    task_db_repository,
-  );
+    // --- Use cases (reciben los ports, no los adapters concretos) ---
+    const createUserUseCase = new CreateUserUseCase(user_db_repository);
+    const listUsersUseCase = new ListUsersUseCase(
+        user_db_repository,
+        task_assignment_db_repository,
+        task_db_repository,
+    );
+    const listUserTasksUseCase = new ListUserTasksUseCase(
+        user_db_repository,
+        task_assignment_db_repository,
+        task_db_repository,
+    );
 
-  const createTaskUseCase = new CreateTaskUseCase(task_db_repository);
-  const assignUsersToTaskUseCase = new AssignUsersToTaskUseCase(
-    task_db_repository,
-    user_db_repository,
-    task_assignment_db_repository,
-  );
-  const completeTaskUseCase = new CompleteTaskUseCase(
-    task_db_repository,
-    user_db_repository,
-    task_assignment_db_repository,
-    notifier,
-  );
-  const listTasksUseCase = new ListTasksUseCase(task_db_repository, task_assignment_db_repository);
-  const getTaskByIdUseCase = new GetTaskByIdUseCase(
-    task_db_repository,
-    user_db_repository,
-    task_assignment_db_repository,
-  );
-  const listTaskNotificationsUseCase = new ListTaskNotificationsUseCase(
-    task_db_repository,
-    notification_db_repository,
-  );
+    const createTaskUseCase = new CreateTaskUseCase(task_db_repository);
+    const assignUsersToTaskUseCase = new AssignUsersToTaskUseCase(
+        task_db_repository,
+        user_db_repository,
+        task_assignment_db_repository,
+    );
+    const completeTaskUseCase = new CompleteTaskUseCase(
+        task_db_repository,
+        user_db_repository,
+        task_assignment_db_repository,
+        notifier,
+    );
+    const listTasksUseCase = new ListTasksUseCase(task_db_repository, task_assignment_db_repository);
+    const getTaskByIdUseCase = new GetTaskByIdUseCase(
+        task_db_repository,
+        user_db_repository,
+        task_assignment_db_repository,
+    );
+    const listTaskNotificationsUseCase = new ListTaskNotificationsUseCase(
+        task_db_repository,
+        notification_db_repository,
+    );
 
-  // --- Controllers (reciben solo los use cases que necesitan) ---
-  const userController = createUserController({
-    createUserUseCase,
-    listUsersUseCase,
-    listUserTasksUseCase,
-    idempotencyDB: idempotency_db_repository,
-  });
+    const createFakeDataUseCase = new CreateFakeDataUseCase(
+        task_db_repository,
+        user_db_repository,
+        task_assignment_db_repository
+    );
 
-  const taskController = createTaskController({
-    createTaskUseCase,
-    assignUsersToTaskUseCase,
-    completeTaskUseCase,
-    listTasksUseCase,
-    getTaskByIdUseCase,
-    listTaskNotificationsUseCase,
-    idempotencyDB: idempotency_db_repository,
-    defaultLimit: process.env.DEFAULT_PAGE_SIZE ? parseInt(process.env.DEFAULT_PAGE_SIZE) : 10, // Valor por defecto para paginación
-  });
+    // --- Controllers (reciben solo los use cases que necesitan) ---
+    const userController = createUserController({
+        createUserUseCase,
+        listUsersUseCase,
+        listUserTasksUseCase,
+        idempotencyDB: idempotency_db_repository,
+    });
 
-  // --- Registro de rutas ---
-  app.get('/', (_req, res) => {
-    res.json({ message: 'Hello World' });
-  });
+    const taskController = createTaskController({
+        createTaskUseCase,
+        assignUsersToTaskUseCase,
+        completeTaskUseCase,
+        listTasksUseCase,
+        getTaskByIdUseCase,
+        listTaskNotificationsUseCase,
+        idempotencyDB: idempotency_db_repository
+    });
 
-  app.use(userController);
-  app.use(taskController);
+    const fakeDataController = createFakeDataController({
+        createFakeDataUseCase,
+    });
+
+    // --- Registro de rutas ---
+    app.get('/', (_req, res) => {
+        res.json({ message: 'Hello World' });
+    });
+
+    app.use(userController);
+    app.use(taskController);
+
+    app.use(fakeDataController);
 }

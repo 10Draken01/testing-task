@@ -1,4 +1,3 @@
-// src/infrastructure/controllers/TaskController.ts
 import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 
@@ -27,7 +26,6 @@ interface TaskControllerDeps {
   getTaskByIdUseCase: GetTaskByIdUseCase;
   listTaskNotificationsUseCase: ListTaskNotificationsUseCase;
   idempotencyDB: IdempotencyDBPort;
-  defaultLimit: number;
 }
  
 export function createTaskController(deps: TaskControllerDeps): Router {
