@@ -3,6 +3,9 @@
 API REST para gestión de tareas y usuarios: asignación de tareas, notificaciones de archivado con reintentos, e idempotencia en operaciones de escritura.
 
 **Repositorio:** https://github.com/10Draken01/testing-task
+
+**\*\*Repositorio frontend:\*\*** [https://github.com/10Draken01/front-end-task](https://github.com/10Draken01/front-end-task)
+
 **Documentación completa de endpoints:** [`docs/API.md`](./docs/API.md)
 **Esquema SQL:** [`sql/schema.sql`](./sql/schema.sql)
 
@@ -11,6 +14,8 @@ API REST para gestión de tareas y usuarios: asignación de tareas, notificacion
 ## Despliegue
 
 🔗 **API pública:** [https://base.testing-task.online/](https://base.testing-task.online/)
+
+**\*\*Frontend público:\*\*** [https://front-end-task-fpwh.onrender.com](https://front-end-task-fpwh.onrender.com)
 
 **Dónde:** Render (free tier), con dominio propio (`testing-task.online`) apuntado por DNS y HTTPS automático vía Let's Encrypt.
 
